@@ -1,4 +1,4 @@
-ARG CUDA_IMAGE=nvidia/cuda:13.0.3-devel-ubuntu24.04
+ARG CUDA_IMAGE=nvidia/cuda:12.6.3-devel-ubuntu24.04
 ARG TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0"
 
 FROM ${CUDA_IMAGE}
@@ -8,9 +8,7 @@ ARG TORCH_CUDA_ARCH_LIST
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
-    UV_NO_PROGRESS=1 \
-    MAX_JOBS=6 \
-    NVCC_THREADS=1
+    UV_NO_PROGRESS=1
 
 WORKDIR /app
 
@@ -28,8 +26,6 @@ RUN apt-get update \
       libsndfile1-dev \
   && rm -rf /var/lib/apt/lists/*
 
-# Install uv via Astral's standalone installer (PEP 668 blocks system pip on
-# Ubuntu 24.04, and we don't need pip for anything else).
 RUN curl -LsSf https://astral.sh/uv/install.sh \
     | env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh
 
@@ -44,7 +40,7 @@ USER appuser
 COPY --chown=appuser:appuser . .
 
 # Install workspace packages from the frozen lockfile.
-RUN uv sync --all-packages --no-dev -v --compile-bytecode --no-cache --no-editable
+RUN uv sync --all-packages --no-dev -v --compile-bytecode --no-editable
 
 EXPOSE 8000
 
