@@ -1,4 +1,4 @@
-ARG CUDA_IMAGE=nvidia/cuda:12.6.3-devel-ubuntu22.04
+ARG CUDA_IMAGE=nvidia/cuda:13.0.3-devel-ubuntu24.04
 ARG TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0"
 
 FROM ${CUDA_IMAGE}
@@ -16,18 +16,20 @@ WORKDIR /app
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates \
+      curl \
       build-essential \
       ninja-build \
       git \
       python3-dev \
-      python3-pip \
       pkg-config \
       ffmpeg \
       libsndfile1-dev \
   && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-RUN python3 -m pip install --no-cache-dir uv
+# Install uv via Astral's standalone installer (PEP 668 blocks system pip on
+# Ubuntu 24.04, and we don't need pip for anything else).
+RUN curl -LsSf https://astral.sh/uv/install.sh \
+    | env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh
 
 ENV NANOVLLM_CACHE_DIR=/var/cache/nanovllm
 RUN useradd -m -u 10001 appuser \
